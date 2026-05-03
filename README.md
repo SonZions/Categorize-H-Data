@@ -9,39 +9,37 @@ de OpenAI-API. Per verslag worden bepaald:
    Pancreaticobiliary Cytopathology* (2022)
 4. **Confidence** in % (0–100) over de WHO-classificatie
 
-De resultaten worden in een aparte tabel `classificatie_resultaten` weggeschreven,
-zodat de bron-tabel ongewijzigd blijft en het script herhaalbaar is.
+## Pure PowerShell — niets te installeren
 
-- Draait op Windows zonder adminrechten (Python uit de Microsoft Store of
-  python.org „Nur für mich").
-- Configureerbaar via `.env`: DB-pad, tabel- en kolomnamen, model, batchgrootte.
-- WHO-categorieën staan vast in de code (zijn gestandaardiseerd) en worden
-  via JSON-Schema strict mode bij OpenAI afgedwongen.
-- Verwerkt meerdere verslagen per API-aanroep (batch); afgebroken runs gewoon
-  opnieuw starten — al gedane records worden overgeslagen.
+Het hele project draait in **Windows PowerShell** (5.1, standaard aanwezig op
+Windows 10/11). Geen Python, geen pip, geen admin-rechten. De enige externe
+afhankelijkheid is de SQLite-bibliotheek (één DLL, ~1.5 MB), die bij de
+eerste start automatisch in een `lib/`-map naast het script wordt gedownload.
+Niets wordt op systeemniveau geïnstalleerd of gewijzigd.
 
-## Schnellstart (Windows, ohne Terminal)
+## Schnellstart
 
-1. Python installieren (Microsoft Store oder python.org, „Nur für mich").
+1. Repo herunterladen (ZIP entpacken oder `git clone`).
 2. `.env.example` zu `.env` kopieren und `OPENAI_API_KEY` eintragen.
-3. **`start.bat` doppelklicken** — beim ersten Lauf werden venv und Pakete
-   automatisch eingerichtet, danach läuft direkt die Klassifikation.
+3. **`start.bat` doppelklicken**. Beim ersten Lauf wird die SQLite-DLL nach
+   `lib/` heruntergeladen (~1.5 MB), danach läuft direkt die Klassifikation.
 
-## Schnellstart (PowerShell)
+Manuell aus PowerShell:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-copy .env.example .env        # OPENAI_API_KEY eintragen
-python init_db.py             # optional: Beispiel-DB mit Voorbeeldverslag
-python categorize.py --dry-run --limit 1
-python categorize.py
+.\categorize.ps1 -DryRun -Limit 1   # Testlauf, schreibt nichts
+.\categorize.ps1                    # Echtlauf
+.\init-db.ps1                       # optional: Beispiel-DB
 ```
+
+> **Hinweis:** PowerShell blockiert standardmäßig `.ps1`-Skripte. Die
+> `start.bat` umgeht das automatisch via `-ExecutionPolicy Bypass`. Wer
+> direkt aus PowerShell startet, einmal pro Sitzung:
+> `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`.
 
 ## Tabellen
 
-**Bron** (bestaand, verwacht; pad/naam via `.env` instelbaar):
+**Quelle** (vorhanden, Pfad/Spalten via `.env` einstellbar):
 
 ```sql
 CREATE TABLE deelnemers_geaggregeerd (
@@ -51,9 +49,9 @@ CREATE TABLE deelnemers_geaggregeerd (
 );
 ```
 
-> Heeft de tekstkolom een andere naam, zet die in `.env` als `TEXT_COLUMN`.
+> Heißt die Textspalte anders, in `.env` `TEXT_COLUMN` setzen.
 
-**Doel** (wordt automatisch aangemaakt):
+**Ziel** (wird automatisch angelegt):
 
 ```sql
 CREATE TABLE classificatie_resultaten (
@@ -67,16 +65,17 @@ CREATE TABLE classificatie_resultaten (
 );
 ```
 
+Bereits klassifizierte `Deelnemersnummer` werden bei Folgeläufen
+übersprungen (Resume-fähig).
+
 ## Files
 
 | Datei | Zweck |
 |---|---|
-| `start.bat` | Doppelklick-Start unter Windows: legt venv an, installiert Pakete, startet die Klassifikation |
-| `categorize.py` | Hauptskript: liest unverarbeitete Verslagen, ruft die API mit JSON-Schema-Strict, schreibt Ergebnisse |
-| `init_db.py` | erzeugt eine Beispiel-DB mit dem Beispiel-Pathologiebericht |
-| `requirements.txt` | Python-Abhängigkeiten (`openai`, `python-dotenv`) |
+| `start.bat` | Doppelklick-Starter; ruft PowerShell mit Bypass-Policy auf |
+| `categorize.ps1` | Hauptskript (PowerShell): lädt SQLite-DLL beim ersten Lauf, ruft OpenAI mit JSON-Schema-Strict, schreibt Ergebnisse |
+| `init-db.ps1` | erzeugt eine Beispiel-DB mit dem Beispiel-Pathologiebericht |
 | `.env.example` | Vorlage für API-Key und Konfiguration |
 | `INSTALL.md` | Installations- und Bedienungsanleitung |
 
-Eine **ausführliche Anleitung** für die Einrichtung auf einem Windows-Rechner
-ohne Adminrechte liegt in [`INSTALL.md`](INSTALL.md).
+Eine **ausführliche Anleitung** liegt in [`INSTALL.md`](INSTALL.md).
