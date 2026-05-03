@@ -46,7 +46,8 @@ cd Categorize-H-Data
 
 ## 3. Virtuelle Umgebung anlegen und Pakete installieren
 
-In der PowerShell **im Projektordner**:
+Beim Doppelklick auf `start.bat` passiert das automatisch. Wer es manuell
+machen will, in der PowerShell **im Projektordner**:
 
 ```powershell
 python -m venv .venv
@@ -61,108 +62,107 @@ pip install -r requirements.txt
 > Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 > ```
 
-Wenn alles geklappt hat, beginnt die Eingabezeile mit `(.venv)`.
-
 ---
 
 ## 4. API-Key und Konfiguration einrichten
 
-1. Datei `.env.example` kopieren und in `.env` umbenennen.
+1. `.env.example` kopieren und in `.env` umbenennen.
 2. `.env` mit dem Editor öffnen und mindestens den OpenAI-Key eintragen:
    ```
    OPENAI_API_KEY=sk-...
    ```
 3. Bei Bedarf weitere Werte anpassen:
-   - `DB_PATH` – Pfad zur SQLite-Datei
-   - `TABLE_NAME`, `ID_COLUMN`, `TEXT_COLUMN`, `CATEGORY_COLUMN` –
-     Tabelle und Spalten in der Datenbank
-   - `CATEGORIES_FILE` – Pfad zur Kategoriendatei (Standard `categories.json`)
-   - `BATCH_SIZE` – wie viele Texte pro API-Aufruf gebündelt werden (Standard 10)
-   - `OPENAI_MODEL` – Standard `gpt-4o-mini` (günstig und für
-     Klassifikation gut geeignet)
+   - `DB_PATH` – Pfad zur SQLite-Datei (z. B. `C:\Daten\verslagen.db`)
+   - `SOURCE_TABLE` – Brontabelle (Standard `deelnemers_geaggregeerd`)
+   - `ID_COLUMN` – Identifierspalte (Standard `Deelnemersnummer`)
+   - `TEXT_COLUMN` – **Spalte mit dem Pathologie-Verslag**
+     (Standard `tekst` – muss ggf. an den realen Spaltennamen angepasst werden!)
+   - `RESULT_TABLE` – Zieltabelle für Ergebnisse (Standard
+     `classificatie_resultaten`, wird automatisch angelegt)
+   - `OPENAI_MODEL` – Standard `gpt-4o-mini` (günstig). Bei schwierigen Fällen
+     `gpt-4o` ausprobieren.
+   - `BATCH_SIZE` – Verslagen pro API-Aufruf (Standard 5; höher = günstiger,
+     aber Risiko für Token-Limits bei langen Texten).
 
 ---
 
-## 4b. Kategorien definieren
+## 5. Datenmodell
 
-Die Kategorien werden mit einer **ausführlichen Beschreibung** in einer
-JSON-Datei abgelegt – das Modell entscheidet anhand dieser Beschreibung.
+### Quelle (muss vorhanden sein)
 
-1. `categories.example.json` in **`categories.json`** kopieren.
-2. Datei in einem Texteditor öffnen und an die eigenen Health-Kategorien
-   anpassen. Format:
+```sql
+CREATE TABLE deelnemers_geaggregeerd (
+  Deelnemersnummer TEXT PRIMARY KEY,
+  aantal_rijen     INTEGER,
+  tekst            TEXT          -- Spalte mit dem Pathologie-Verslag
+);
+```
 
-   ```json
-   {
-     "Kardiologie": "Im Text kommen Begriffe wie EKG, LVEF, Troponin vor; oder es gibt Diagnosen wie KHK, Vorhofflimmern, Herzinsuffizienz.",
-     "Onkologie": "Im Befund sind Begriffe wie Karzinom, Metastase, Biopsie zu finden; oder es gibt eine Tumordiagnose."
-   }
-   ```
+> Heißt die Textspalte anders, in `.env` `TEXT_COLUMN` entsprechend setzen.
 
-   - Schlüssel = exakter **Kategoriename**, der in die DB geschrieben wird.
-   - Wert = freier Beschreibungstext: welche Worte typischerweise vorkommen,
-     welche Befunde erwartet werden, welche Diagnosen passen.
-   - Eine Kategorie `"Sonstiges"` empfiehlt sich als Auffangbecken.
+### Ziel (wird automatisch angelegt)
 
-3. Speichern. Die Datei `categories.json` wird **nicht eingecheckt**
-   (steht in `.gitignore`), bleibt also lokal.
+```sql
+CREATE TABLE classificatie_resultaten (
+  Deelnemersnummer    TEXT PRIMARY KEY,
+  procedure           TEXT,    -- ERCP / EUS / onbekend
+  sample_type         TEXT,    -- biopt / brush / gal_aspirate / onbekend
+  who_kategorie       TEXT,    -- Name der WHO-Kategorie
+  who_kategorienummer INTEGER, -- 1–7 (Arabische Ziffer)
+  confidence          INTEGER, -- 0–100 (%)
+  verwerkt_op         TEXT     -- ISO-Zeitstempel
+);
+```
+
+Bereits klassifizierte `Deelnemersnummer` werden bei Folgeläufen
+übersprungen (Resume-fähig).
 
 ---
 
-## 5. (Optional) Beispiel-Datenbank erzeugen
+## 6. (Optional) Beispiel-Datenbank erzeugen
 
-Wenn noch keine Datenbank vorhanden ist, lässt sich eine Test-DB anlegen:
+Wenn keine echte DB vorhanden ist, kann eine Test-DB angelegt werden:
 
 ```powershell
 python init_db.py
 ```
 
-Damit entsteht `data.db` mit 10 Beispiel-Texten ohne Kategorie.
+Damit entsteht `data.db` mit einem Beispiel-Pathologiebericht.
 
 ---
 
-## 6. Kategorisierung starten
+## 7. Klassifikation starten
 
 ### Bequem per Doppelklick
 
-Im Datei-Explorer einfach **`start.bat`** doppelklicken. Beim ersten
-Aufruf legt das Skript automatisch die virtuelle Umgebung an und
-installiert die Pakete (Schritt 3 entfällt dann). Anschließend wird
-die Kategorisierung gestartet und das Fenster bleibt am Ende offen.
+Im Datei-Explorer **`start.bat`** doppelklicken. Beim ersten Aufruf legt das
+Skript automatisch die virtuelle Umgebung an und installiert die Pakete.
+Anschließend wird die Klassifikation gestartet und das Fenster bleibt am
+Ende offen.
 
-> Voraussetzung: `.env` ist angelegt und enthält den OpenAI-Key
-> (siehe Punkt 4).
+> Voraussetzung: `.env` ist angelegt und enthält den OpenAI-Key.
 
 ### Oder über die PowerShell
 
 ```powershell
-python categorize.py
+python categorize.py --dry-run --limit 1   # Testlauf, schreibt nichts
+python categorize.py                       # Echtlauf
 ```
 
-Zuerst empfiehlt sich ein Trockenlauf, der nichts in die DB schreibt:
-
-```powershell
-python categorize.py --dry-run --limit 20
-```
-
-Beim normalen Lauf werden alle Datensätze, deren Kategorie noch leer ist,
-in Batches an die API geschickt und das Ergebnis sofort in die Datenbank
-geschrieben. Bei ca. 500 Datensätzen und `BATCH_SIZE=10` sind das ungefähr
-**50 API-Aufrufe**.
-
-Das Skript ist **wiederholbar**: bereits kategorisierte Zeilen werden
-übersprungen, abgebrochene Läufe können einfach erneut gestartet werden.
+Bei ca. 500 Datensätzen und `BATCH_SIZE=5` sind das ungefähr
+**100 API-Aufrufe**. Das Skript ist **wiederholbar**: bereits klassifizierte
+Datensätze (vorhanden in `classificatie_resultaten`) werden übersprungen.
 
 ---
 
-## 7. Ergebnisse prüfen
+## 8. Ergebnisse prüfen
 
 Mit einem grafischen SQLite-Tool wie **DB Browser for SQLite**
 (https://sqlitebrowser.org – portable Version verfügbar, kein Admin nötig)
 oder über die Kommandozeile:
 
 ```powershell
-python -c "import sqlite3; [print(r) for r in sqlite3.connect('data.db').execute('SELECT id, kategorie, substr(text,1,40) FROM texte LIMIT 20')]"
+python -c "import sqlite3; [print(r) for r in sqlite3.connect('data.db').execute('SELECT Deelnemersnummer, procedure, sample_type, who_kategorienummer, confidence FROM classificatie_resultaten LIMIT 20')]"
 ```
 
 ---
@@ -172,16 +172,18 @@ python -c "import sqlite3; [print(r) for r in sqlite3.connect('data.db').execute
 | Problem | Lösung |
 |---|---|
 | `python` wird nicht gefunden | PowerShell schließen und neu öffnen, oder Punkt 1 wiederholen |
-| `OPENAI_API_KEY ist nicht gesetzt` | Schritt 4 prüfen, `.env` muss im Projektordner liegen |
+| `OPENAI_API_KEY niet gezet` | Schritt 4 prüfen, `.env` muss im Projektordner liegen |
+| `database niet gevonden` | `DB_PATH` in `.env` prüfen oder `python init_db.py` ausführen |
 | `Activate.ps1 cannot be loaded` | `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` ausführen |
-| `RateLimitError` von OpenAI | Skript erneut starten – bereits kategorisierte Zeilen bleiben erhalten |
-| Falsche/unscharfe Kategorien | Beschreibungen in `categories.json` präzisieren (mehr Stichworte, Beispieldiagnosen) |
-| `Kategorien-Datei nicht gefunden` | `categories.example.json` zu `categories.json` kopieren und anpassen |
-| Warnung „unbekannte Kategorie" | Modell hat einen Namen erfunden – Kategoriebeschreibungen schärfer trennen |
+| `RateLimitError` von OpenAI | Skript erneut starten – schon klassifizierte Zeilen bleiben erhalten |
+| Niedrige Confidence | Modell auf `gpt-4o` umstellen (`OPENAI_MODEL` in `.env`) |
+| `no such column: tekst` | `TEXT_COLUMN` in `.env` an die echte Spalte anpassen |
 
 ---
 
 ## Kosten (Richtwert)
 
-Mit `gpt-4o-mini` und kurzen Texten kosten 500 Datensätze typischerweise
-**unter 0,10 USD**. Genaue Abrechnung im OpenAI-Dashboard unter „Usage".
+Mit `gpt-4o-mini` und langen Pathologieberichten (jeweils ~1–2 KB) liegen
+500 Datensätze typischerweise im **niedrigen einstelligen USD-Bereich**.
+Genaue Abrechnung im OpenAI-Dashboard unter „Usage". Bei `gpt-4o` rund
+**Faktor 15** teurer.
