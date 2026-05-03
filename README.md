@@ -8,7 +8,14 @@ kategorisiert und das Ergebnis zurück in die Datenbank schreibt.
 - konfigurierbar über `.env` (DB-Pfad, Tabelle/Spalten, Modell, Kategorien)
 - verarbeitet mehrere Texte pro API-Aufruf (Batch), wiederholbar bei Abbruch
 
-## Schnellstart
+## Schnellstart (Windows, ohne Terminal)
+
+1. Python installieren (Microsoft Store oder python.org, „Nur für mich").
+2. `.env.example` zu `.env` kopieren und `OPENAI_API_KEY` eintragen.
+3. **`start.bat` doppelklicken** – beim ersten Lauf werden venv und Pakete
+   automatisch eingerichtet, danach läuft direkt die Kategorisierung.
+
+## Schnellstart (PowerShell)
 
 ```powershell
 python -m venv .venv
@@ -27,6 +34,7 @@ ohne Adminrechte liegt in [`INSTALL.md`](INSTALL.md).
 
 | Datei | Zweck |
 |---|---|
+| `start.bat` | Doppelklick-Start unter Windows: legt beim ersten Lauf venv an, installiert Pakete und startet die Kategorisierung |
 | `categorize.py` | Hauptskript: liest unkategorisierte Zeilen, fragt die API, schreibt zurück |
 | `init_db.py` | erzeugt eine Beispiel-Datenbank mit 10 Test-Texten |
 | `requirements.txt` | Python-Abhängigkeiten (`openai`, `python-dotenv`) |

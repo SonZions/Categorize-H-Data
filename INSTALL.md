@@ -98,6 +98,18 @@ Damit entsteht `data.db` mit 10 Beispiel-Texten ohne Kategorie.
 
 ## 6. Kategorisierung starten
 
+### Bequem per Doppelklick
+
+Im Datei-Explorer einfach **`start.bat`** doppelklicken. Beim ersten
+Aufruf legt das Skript automatisch die virtuelle Umgebung an und
+installiert die Pakete (Schritt 3 entfällt dann). Anschließend wird
+die Kategorisierung gestartet und das Fenster bleibt am Ende offen.
+
+> Voraussetzung: `.env` ist angelegt und enthält den OpenAI-Key
+> (siehe Punkt 4).
+
+### Oder über die PowerShell
+
 ```powershell
 python categorize.py
 ```
