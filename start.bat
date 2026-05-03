@@ -45,6 +45,15 @@ if not exist ".env" (
     exit /b 1
 )
 
+if not exist "categories.json" (
+    echo Fehler: Datei categories.json fehlt.
+    echo Bitte categories.example.json kopieren, in categories.json umbenennen
+    echo und an die eigenen Kategorien anpassen.
+    echo.
+    pause
+    exit /b 1
+)
+
 echo Starte Kategorisierung ...
 echo.
 ".venv\Scripts\python.exe" categorize.py %*

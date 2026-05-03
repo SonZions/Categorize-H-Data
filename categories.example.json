@@ -1,0 +1,11 @@
+{
+  "Kardiologie": "Texte mit Bezug zu Herz/Kreislauf. Typische Begriffe: EKG, Echokardiografie, LVEF, Troponin, Vorhofflimmern, KHK, Herzinsuffizienz, Bluthochdruck, Stent, Herzkatheter. Befunde zur Herzfunktion oder kardiologische Diagnosen.",
+  "Pneumologie": "Texte zu Atemwegen und Lunge. Typische Begriffe: Spirometrie, FEV1, COPD, Asthma, Pneumonie, Bronchitis, Roentgen-Thorax, Sauerstoffsaettigung. Diagnosen oder Befunde der Lunge/Bronchien.",
+  "Onkologie": "Texte mit Verdacht auf oder Diagnose einer Tumorerkrankung. Begriffe wie Karzinom, Metastase, Tumor, Biopsie, Histologie, Staging, TNM, Chemotherapie, Bestrahlung.",
+  "Endokrinologie": "Texte zu Hormon- und Stoffwechselerkrankungen. Begriffe wie Diabetes, HbA1c, Insulin, Schilddruese, TSH, fT3, fT4, Cortisol, Adipositas, Osteoporose.",
+  "Labordiagnostik": "Reine Laborbefunde mit Zahlenwerten ohne uebergeordnete Diagnose. Z. B. Haemoglobin, Leukozyten, Thrombozyten, CRP, Kreatinin, GFR, Elektrolyte, Leberwerte. Keine Bildgebung.",
+  "Bildgebung": "Radiologische oder sonografische Befundberichte. MRT, CT, Ultraschall, Roentgen, Mammografie. Beschreibung von Strukturen, Signalverhalten, Kontrastmittel.",
+  "Medikation": "Texte, die ueberwiegend Medikamente, Dosierungen oder Verordnungen enthalten. Wirkstoffe (z. B. Metoprolol, Ramipril, Apixaban, Metformin), Dosis-Angaben in mg, Einnahmeschema.",
+  "Anamnese": "Patientengeschichte, Vorerkrankungen, Familien- oder Sozialanamnese, geschilderte Beschwerden ohne konkreten Messbefund.",
+  "Sonstiges": "Texte, die in keine andere Kategorie eindeutig passen oder zu unklar sind."
+}

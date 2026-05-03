@@ -76,11 +76,36 @@ Wenn alles geklappt hat, beginnt die Eingabezeile mit `(.venv)`.
    - `DB_PATH` – Pfad zur SQLite-Datei
    - `TABLE_NAME`, `ID_COLUMN`, `TEXT_COLUMN`, `CATEGORY_COLUMN` –
      Tabelle und Spalten in der Datenbank
-   - `CATEGORIES` – komma-getrennte Liste erlaubter Kategorien
-     (leer lassen, damit das Modell selbst Kategorien wählt)
+   - `CATEGORIES_FILE` – Pfad zur Kategoriendatei (Standard `categories.json`)
    - `BATCH_SIZE` – wie viele Texte pro API-Aufruf gebündelt werden (Standard 10)
    - `OPENAI_MODEL` – Standard `gpt-4o-mini` (günstig und für
      Klassifikation gut geeignet)
+
+---
+
+## 4b. Kategorien definieren
+
+Die Kategorien werden mit einer **ausführlichen Beschreibung** in einer
+JSON-Datei abgelegt – das Modell entscheidet anhand dieser Beschreibung.
+
+1. `categories.example.json` in **`categories.json`** kopieren.
+2. Datei in einem Texteditor öffnen und an die eigenen Health-Kategorien
+   anpassen. Format:
+
+   ```json
+   {
+     "Kardiologie": "Im Text kommen Begriffe wie EKG, LVEF, Troponin vor; oder es gibt Diagnosen wie KHK, Vorhofflimmern, Herzinsuffizienz.",
+     "Onkologie": "Im Befund sind Begriffe wie Karzinom, Metastase, Biopsie zu finden; oder es gibt eine Tumordiagnose."
+   }
+   ```
+
+   - Schlüssel = exakter **Kategoriename**, der in die DB geschrieben wird.
+   - Wert = freier Beschreibungstext: welche Worte typischerweise vorkommen,
+     welche Befunde erwartet werden, welche Diagnosen passen.
+   - Eine Kategorie `"Sonstiges"` empfiehlt sich als Auffangbecken.
+
+3. Speichern. Die Datei `categories.json` wird **nicht eingecheckt**
+   (steht in `.gitignore`), bleibt also lokal.
 
 ---
 
@@ -150,7 +175,9 @@ python -c "import sqlite3; [print(r) for r in sqlite3.connect('data.db').execute
 | `OPENAI_API_KEY ist nicht gesetzt` | Schritt 4 prüfen, `.env` muss im Projektordner liegen |
 | `Activate.ps1 cannot be loaded` | `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` ausführen |
 | `RateLimitError` von OpenAI | Skript erneut starten – bereits kategorisierte Zeilen bleiben erhalten |
-| Falsche Kategorien | `CATEGORIES` in `.env` einschränken oder anpassen |
+| Falsche/unscharfe Kategorien | Beschreibungen in `categories.json` präzisieren (mehr Stichworte, Beispieldiagnosen) |
+| `Kategorien-Datei nicht gefunden` | `categories.example.json` zu `categories.json` kopieren und anpassen |
+| Warnung „unbekannte Kategorie" | Modell hat einen Namen erfunden – Kategoriebeschreibungen schärfer trennen |
 
 ---
 

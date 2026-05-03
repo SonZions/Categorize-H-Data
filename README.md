@@ -5,14 +5,18 @@ kategorisiert und das Ergebnis zurück in die Datenbank schreibt.
 
 - läuft auf Windows ohne Adminrechte (Microsoft-Store-Python oder
   „Nur für mich"-Installer)
-- konfigurierbar über `.env` (DB-Pfad, Tabelle/Spalten, Modell, Kategorien)
+- konfigurierbar über `.env` (DB-Pfad, Tabelle/Spalten, Modell)
+- Kategorien als JSON-Datei mit ausführlichen Beschreibungen / Regeln
+  ("welche Worte / Befunde / Diagnosen → welche Kategorie")
 - verarbeitet mehrere Texte pro API-Aufruf (Batch), wiederholbar bei Abbruch
 
 ## Schnellstart (Windows, ohne Terminal)
 
 1. Python installieren (Microsoft Store oder python.org, „Nur für mich").
 2. `.env.example` zu `.env` kopieren und `OPENAI_API_KEY` eintragen.
-3. **`start.bat` doppelklicken** – beim ersten Lauf werden venv und Pakete
+3. `categories.example.json` zu `categories.json` kopieren und die
+   eigenen Kategorien mit Beschreibung eintragen.
+4. **`start.bat` doppelklicken** – beim ersten Lauf werden venv und Pakete
    automatisch eingerichtet, danach läuft direkt die Kategorisierung.
 
 ## Schnellstart (PowerShell)
@@ -21,7 +25,8 @@ kategorisiert und das Ergebnis zurück in die Datenbank schreibt.
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-copy .env.example .env        # OPENAI_API_KEY eintragen
+copy .env.example .env                    # OPENAI_API_KEY eintragen
+copy categories.example.json categories.json   # Kategorien anpassen
 python init_db.py             # optional: Beispiel-DB
 python categorize.py --dry-run --limit 5
 python categorize.py
@@ -36,6 +41,7 @@ ohne Adminrechte liegt in [`INSTALL.md`](INSTALL.md).
 |---|---|
 | `start.bat` | Doppelklick-Start unter Windows: legt beim ersten Lauf venv an, installiert Pakete und startet die Kategorisierung |
 | `categorize.py` | Hauptskript: liest unkategorisierte Zeilen, fragt die API, schreibt zurück |
+| `categories.example.json` | Vorlage für Kategorienamen + ausführliche Beschreibungen (Health-Beispiele) |
 | `init_db.py` | erzeugt eine Beispiel-Datenbank mit 10 Test-Texten |
 | `requirements.txt` | Python-Abhängigkeiten (`openai`, `python-dotenv`) |
 | `.env.example` | Vorlage für API-Key und Konfiguration |
